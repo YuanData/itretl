@@ -244,7 +244,7 @@ def gen_iy_cy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, chosen_area=N
     df__iy_hs8_cy_cal = cal_growth_rate_per_yr(df__iy_hs8_cy_cal)
     # [各產業 x 各國] 貨品排名
     df__iy_cy_hs8_rank = rank_hs8_diff(df__iy_hs8_cy_cal, dic_hiraky['lst_gpby_cols'],
-                                       rank_top_num=5
+                                       rank_top_num=RANK_TOP_NUM_5
                                        )
     df__iy_cy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_cy_hs8_rank, how='right',
                                   left_index=True, right_on='Hscode8')
