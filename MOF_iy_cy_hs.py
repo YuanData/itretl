@@ -96,7 +96,7 @@ def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
         ['選擇方式', 'Industry', 'Hscode8', 'year'], gpby_tar='indst')
     #   [        各產業        x 各貨品    ]
     df__iy_hs8_cy_yr = df__iy_hs8_cy_yr.groupby(dic_hiraky['lst_unst_yr_idxs'])[VALUE].sum().reset_index()
-    df__iy_hs8, _ = gpby_indst_x_prod(df__iy_hs8_cy_yr, dic_hiraky)
+    df__iy_hs8, df_sum = gpby_indst_x_prod(df__iy_hs8_cy_yr, dic_hiraky)
 
     df__iy_hs8_cal = cal_share_per_yr(df__iy_hs8, dic_hiraky['gpby_tar'])
     df__iy_hs8_cal = cal_growth_rate_per_yr(df__iy_hs8_cal)
@@ -107,7 +107,7 @@ def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
                                     )
     df__iy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_hs8_rank, how='right', left_index=True, right_on='Hscode8')
 
-    df__iy_hs8_rank_unst = unst_df__iy_hs8_rank(df__iy_hs8_rank, period_str, col_str)
+    df__iy_hs8_rank_unst = unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str)
 
     df__iy_hs8_rank = df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str)  # 輸出格式調整
     df__iy_hs8_rank.reset_index(drop=True, inplace=True)
@@ -117,7 +117,7 @@ def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
     return df__iy_hs8_rank_unst
 
 
-def unst_df__iy_hs8_rank(df__iy_hs8_rank, period_str, col_str):
+def unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str):
     df = df__iy_hs8_rank[
         ['選擇方式',
          'Industry',
@@ -128,25 +128,16 @@ def unst_df__iy_hs8_rank(df__iy_hs8_rank, period_str, col_str):
          'share_of_indst_2019',
          'rank',
          ]].copy()
-    df_sum = df__iy_hs8_rank[
-        ['選擇方式',
-         'Industry',
-         'sum_indst_2018',
-         'sum_indst_2019',
-         ]].copy()
-    df_sum = df_sum.drop_duplicates()
-    # df_sum = df_sum.drop_duplicates(['sum_indst_2018', 'sum_indst_2019'])
-    # df_sum['成長率'] = ((df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']) / df_sum['sum_indst_2018']) * 100
-    # df_sum['成長率'] = df_sum['成長率'].apply(lambda s: '{:.2f}'.format(s))
-    df_sum.drop(columns=['sum_indst_2018', 'sum_indst_2019'], inplace=True)
+    df_sum['產業成長率'] = ((df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']) / df_sum['sum_indst_2018'])
+    # df_sum['產業成長率'] = ((df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']) / df_sum['sum_indst_2018']) * 100
+    # df_sum['產業成長率'] = df_sum['產業成長率'].apply(lambda s: '{:.2f}'.format(s))
+    df_sum.drop(columns=['sum_indst_2017'], inplace=True)
 
-    # df_sum['總額差'] = df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']
-    # df_sum.rename(columns={
-    #     'sum_indst_2018': '產業總額_2018年%s月' % col_str,
-    #     'sum_indst_2019': '產業總額_2019年%s月' % col_str,
-    # }, inplace=True)
-
-    df_sum = df_sum.set_index(['選擇方式', 'Industry'])
+    df_sum['產業差額'] = df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']
+    df_sum.rename(columns={
+        'sum_indst_2018': '產業總額_2018年%s月' % col_str,
+        'sum_indst_2019': '產業總額_2019年%s月' % col_str,
+    }, inplace=True)
 
     df['growth_rate_2019'] = df['growth_rate_2019'] * 100
     df['share_of_indst_2019'] = df['share_of_indst_2019'] * 100
@@ -160,7 +151,7 @@ def unst_df__iy_hs8_rank(df__iy_hs8_rank, period_str, col_str):
 
     df.drop(columns=['Hscode8', 'Hscode8_Chinese', 'diff_2019', 'growth_rate_2019', 'share_of_indst_2019'],
             inplace=True)
-    df = df.drop_duplicates(['選擇方式', 'Industry', 'rank'])  # TODO work around
+    df = df.drop_duplicates(['選擇方式', 'Industry', 'rank'])  # 同排名處理 work around
     df = df.set_index(['選擇方式', 'Industry', 'rank']).unstack()
     df.columns = ['{l2}名{l1}'.format(l1=t[0], l2=t[1]) for t in tuple(df.columns)]
 
@@ -230,7 +221,7 @@ def df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str):
 
 
 def gen_excel_report_iy_hs8_rank(df_yt, df_1m):
-    df = pd.concat([df_yt, df_1m])
+    df = pd.concat([df_yt, df_1m], sort=False)
     df.sort_values(['產業', '分類', '時間'], ascending=[True, True, True], inplace=True)
     df = df.set_index(['產業', '分類', '時間'])
     industry_hs8_diff_rank_mix_time_xlsx = os.path.join(REPORT_PATH, '合併_industry_hs8_diff_rank.xlsx')
