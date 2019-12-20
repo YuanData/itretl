@@ -22,11 +22,11 @@ def gen_df_all_iy_regex():
     # # df_all_iy_xlsx = pd.read_excel(r'SourceMaterial\產業hscode對照表.xlsx', 'sheet1')
     # # df_all_iy_xlsx = pd.read_excel(r'SourceMaterial\產業hscode對照表.xlsx', '重要資料版_節選16')
 
-    # 測試用
-    df_all_iy_xlsx = df_all_iy_xlsx[
-        (df_all_iy_xlsx['大項'] == '16_機械及電機設備')
-        | (df_all_iy_xlsx['大項'] == '全部產品')
-        ]
+    # # 測試用
+    # df_all_iy_xlsx = df_all_iy_xlsx[
+    #     (df_all_iy_xlsx['大項'] == '16_機械及電機設備')
+    #     | (df_all_iy_xlsx['大項'] == '全部產品')
+    #     ]
 
     # 正式用
     df_all_iy_xlsx = df_all_iy_xlsx[
