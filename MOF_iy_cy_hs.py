@@ -45,28 +45,6 @@ def gen_dic_hiraky(lst_unst_yr_idxs, gpby_tar):
     return dic_hiraky
 
 
-def gpby_indst_x_prod(df__iy_hs8_cy_yr, dic_hiraky):
-    # df_各產業(x國)x時間 = df_各產業x貨品(x國)x時間.gpby() [各產業 各國 聚合 貨品總額]
-    df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(dic_hiraky['lst_gpby_cols_yr'])[VALUE].sum().reset_index()
-    df__iy_cy_yr.rename(columns={VALUE: 'sum_%s' % dic_hiraky['gpby_tar']}, inplace=True)
-
-    # df_各產業(x國)= df_各產業(x國)x時間.UNSTACK(時間)
-    df__iy_cy = df__iy_cy_yr.set_index(dic_hiraky['lst_gpby_cols_yr']).unstack()
-    df__iy_cy = df__iy_cy.fillna(0)
-    df__iy_cy.columns = ['{sum_gpby_tar}_{y}'.format(sum_gpby_tar=t[0], y=t[1]) for t in tuple(df__iy_cy.columns)]
-    del df__iy_cy_yr
-    # df_各產業x貨品(x國) = df_各產業x貨品(x國)x時間.UNSTACK(年份)
-    df__iy_hs8_cy = df__iy_hs8_cy_yr.set_index(dic_hiraky['lst_unst_yr_idxs']).unstack()
-    df__iy_hs8_cy = df__iy_hs8_cy.fillna(0)
-    df__iy_hs8_cy.columns = ['{Value}_{y}'.format(Value=t[0], y=t[1]) for t in tuple(df__iy_hs8_cy.columns)]
-    df__iy_hs8_cy.reset_index(inplace=True)
-
-    # df_各產業x貨品(x國).LEFT_JOIN(df_各產業(x國))
-    df__iy_hs8_cy = pd.merge(df__iy_hs8_cy, df__iy_cy, how='left', on=dic_hiraky['lst_gpby_cols'])
-
-    return df__iy_hs8_cy, df__iy_cy
-
-
 def cal_share_per_yr(df, share_name, val='Value'):
     for y in range(year_start, year_end + 1):
         df['share_of_{share_name}_{y}'.format(share_name=share_name, y=y)] = \
@@ -91,23 +69,49 @@ def cal_growth_rate_per_yr(df, c_name='', val='Value'):
     return df
 
 
-def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
-    dic_hiraky = gen_dic_hiraky(
-        ['選擇方式', 'Industry', 'Hscode8', 'year'], gpby_tar='indst')
-    #   [        各產業        x 各貨品    ]
-    df__iy_hs8_cy_yr = df__iy_hs8_cy_yr.groupby(dic_hiraky['lst_unst_yr_idxs'])[VALUE].sum().reset_index()
-    df__iy_hs8, df_sum = gpby_indst_x_prod(df__iy_hs8_cy_yr, dic_hiraky)
+def gen_iy_hs8_process(df__iy_hs8_cy_yr):
+    lst_iy_hs_yr = ['選擇方式', 'Industry', 'Hscode8', 'year']
+    lst_iy_yr__rm_hs = ['選擇方式', 'Industry', 'year']
+    lst_iy__rm_yr_hs = ['選擇方式', 'Industry']
+    gpby_tar = 'indst'
+    # 聚合 cy
+    df__iy_hs8_yr = df__iy_hs8_cy_yr.groupby(lst_iy_hs_yr)[VALUE].sum().reset_index()
 
-    df__iy_hs8_cal = cal_share_per_yr(df__iy_hs8, dic_hiraky['gpby_tar'])
+    # df_產業x年 = df_產業x貨品x年.gpby()
+    df__iy_yr = df__iy_hs8_yr.groupby(lst_iy_yr__rm_hs)[VALUE].sum().reset_index()
+    df__iy_yr.rename(columns={VALUE: 'sum_%s' % gpby_tar}, inplace=True)
+
+    # df_產業= df_產業x年.UNSTACK(年)
+    df_iy = df__iy_yr.set_index(lst_iy_yr__rm_hs).unstack()
+    df_iy = df_iy.fillna(0)
+    df_iy.columns = ['{sum_gpby_tar}_{y}'.format(sum_gpby_tar=t[0], y=t[1]) for t in tuple(df_iy.columns)]
+    del df__iy_yr
+    # df_產業x貨品 = df_產業x貨品x年.UNSTACK(年)
+    df__iy_hs8 = df__iy_hs8_yr.set_index(lst_iy_hs_yr).unstack()
+    df__iy_hs8 = df__iy_hs8.fillna(0)
+    df__iy_hs8.columns = ['{Value}_{y}'.format(Value=t[0], y=t[1]) for t in tuple(df__iy_hs8.columns)]
+    df__iy_hs8.reset_index(inplace=True)
+    df__iy_hs8.set_index(lst_iy__rm_yr_hs, inplace=True)
+
+    # df_產業x貨品.LEFT_JOIN(df_產業)
+    df__iy_hs8 = pd.merge(df__iy_hs8, df_iy, how='left', left_index=True, right_index=True)
+    df__iy_hs8.reset_index(inplace=True)
+
+    df__iy_hs8_cal = cal_share_per_yr(df__iy_hs8, gpby_tar)
     df__iy_hs8_cal = cal_growth_rate_per_yr(df__iy_hs8_cal)
     del df__iy_hs8
     # [各產業] 貨品排名
-    df__iy_hs8_rank = rank_hs8_diff(df__iy_hs8_cal, dic_hiraky['lst_gpby_cols'],
+    df__iy_hs8_rank = rank_hs8_diff(df__iy_hs8_cal, lst_iy__rm_yr_hs,
                                     rank_top_num=RANK_TOP_NUM_5
                                     )
+    return df__iy_hs8_rank, df_iy
+
+
+def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
+    df__iy_hs8_rank, df_iy = gen_iy_hs8_process(df__iy_hs8_cy_yr)
     df__iy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_hs8_rank, how='right', left_index=True, right_on='Hscode8')
 
-    df__iy_hs8_rank_unst = unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str)
+    df__iy_hs8_rank_unst = unst_df__iy_hs8_rank(df__iy_hs8_rank, df_iy, period_str, col_str)
 
     df__iy_hs8_rank = df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str)  # 輸出格式調整
     df__iy_hs8_rank.reset_index(drop=True, inplace=True)
@@ -117,7 +121,7 @@ def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
     return df__iy_hs8_rank_unst
 
 
-def unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str):
+def unst_df__iy_hs8_rank(df__iy_hs8_rank, df_iy, period_str, col_str):
     df = df__iy_hs8_rank[
         ['選擇方式',
          'Industry',
@@ -128,13 +132,13 @@ def unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str):
          'share_of_indst_2019',
          'rank',
          ]].copy()
-    df_sum['產業成長率'] = ((df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']) / df_sum['sum_indst_2018'])
+    df_iy['產業成長率'] = ((df_iy['sum_indst_2019'] - df_iy['sum_indst_2018']) / df_iy['sum_indst_2018'])
     # df_sum['產業成長率'] = ((df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']) / df_sum['sum_indst_2018']) * 100
     # df_sum['產業成長率'] = df_sum['產業成長率'].apply(lambda s: '{:.2f}'.format(s))
-    df_sum.drop(columns=['sum_indst_2017'], inplace=True)
+    df_iy.drop(columns=['sum_indst_2017'], inplace=True)
 
-    df_sum['產業差額'] = df_sum['sum_indst_2019'] - df_sum['sum_indst_2018']
-    df_sum.rename(columns={
+    df_iy['產業差額'] = df_iy['sum_indst_2019'] - df_iy['sum_indst_2018']
+    df_iy.rename(columns={
         'sum_indst_2018': '產業總額_2018年%s月' % col_str,
         'sum_indst_2019': '產業總額_2019年%s月' % col_str,
     }, inplace=True)
@@ -155,7 +159,7 @@ def unst_df__iy_hs8_rank(df__iy_hs8_rank, df_sum, period_str, col_str):
     df = df.set_index(['選擇方式', 'Industry', 'rank']).unstack()
     df.columns = ['{l2}名{l1}'.format(l1=t[0], l2=t[1]) for t in tuple(df.columns)]
 
-    df = pd.merge(df_sum, df, how='left', left_index=True, right_index=True)
+    df = pd.merge(df_iy, df, how='left', left_index=True, right_index=True)
 
     df.reset_index(inplace=True)
     df.rename(columns={'選擇方式': '產業', 'Industry': '分類', }, inplace=True)
@@ -230,22 +234,49 @@ def gen_excel_report_iy_hs8_rank(df_yt, df_1m):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = #
 
+def gen_iy_cy_hs8_process(df__iy_hs8_cy_yr):
+    lst_iy_hs_cy_yr = ['選擇方式', 'Industry', 'Hscode8', COUNTRY, 'year']
+    lst_iy_hs_cy__rm_yr = ['選擇方式', 'Industry', 'Hscode8', COUNTRY, ]
+    lst_iy_cy_yr__rm_hs = ['選擇方式', 'Industry', COUNTRY, 'year']
+    lst_iy_cy__rm_hs_yr = ['選擇方式', 'Industry', COUNTRY]
+    gpby_tar = 'indst_of_cnty'
+
+    # df_產業x國x年 = df_產業x貨品x國x年.gpby()
+    df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr__rm_hs)[VALUE].sum().reset_index()
+    df__iy_cy_yr.rename(columns={VALUE: 'sum_%s' % gpby_tar}, inplace=True)
+
+    # df_產業x國= df_產業x國x年.UNSTACK(年)
+    df__iy_cy = df__iy_cy_yr.set_index(lst_iy_cy_yr__rm_hs).unstack()
+    df__iy_cy = df__iy_cy.fillna(0)
+    df__iy_cy.columns = ['{sum_gpby_tar}_{y}'.format(sum_gpby_tar=t[0], y=t[1]) for t in tuple(df__iy_cy.columns)]
+    del df__iy_cy_yr
+    # df_產業x貨品x國 = df_產業x貨品x國x年.UNSTACK(年)
+    df__iy_hs8_cy = df__iy_hs8_cy_yr.set_index(lst_iy_hs_cy_yr).unstack()
+    df__iy_hs8_cy = df__iy_hs8_cy.fillna(0)
+    df__iy_hs8_cy.columns = ['{Value}_{y}'.format(Value=t[0], y=t[1]) for t in tuple(df__iy_hs8_cy.columns)]
+    df__iy_hs8_cy.reset_index(inplace=True)
+    df__iy_hs8_cy.set_index(lst_iy_cy__rm_hs_yr, inplace=True)
+
+    # df_產業x貨品x國.LEFT_JOIN(df_產業x國)
+    df__iy_hs8_cy = pd.merge(df__iy_hs8_cy, df__iy_cy, how='left', left_index=True, right_index=True)
+    df__iy_hs8_cy.reset_index(inplace=True)
+
+    df__iy_hs8_cy_cal = cal_share_per_yr(df__iy_hs8_cy, gpby_tar)
+    df__iy_hs8_cy_cal = cal_growth_rate_per_yr(df__iy_hs8_cy_cal)
+    # [各產業 x 各國] 貨品排名
+    df__iy_cy_hs8_rank = rank_hs8_diff(df__iy_hs8_cy_cal, lst_iy_cy__rm_hs_yr,
+                                       rank_top_num=RANK_TOP_NUM_5
+                                       )
+    return df__iy_cy_hs8_rank, df__iy_cy
+
+
 def gen_iy_cy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, chosen_area=None):
-    dic_hiraky = gen_dic_hiraky(
-        ['選擇方式', 'Industry', 'Hscode8', COUNTRY, 'year'], gpby_tar='indst_of_cnty')
-    #   [        各產業        x 各貨品   x 各國    ]
-    df__iy_hs8_cy, df__iy_cy = gpby_indst_x_prod(df__iy_hs8_cy_yr, dic_hiraky)
+    df__iy_cy_hs8_rank, df__iy_cy = gen_iy_cy_hs8_process(df__iy_hs8_cy_yr)
 
     # - - - - - - - - - - - 熱區圖 - - - - - - - - - - - #
     heatmap_process(df__iy_cy, period_str, chosen_area)  #
     # - - - - - - - - - - - - - - - - - - - - - - - - - #
 
-    df__iy_hs8_cy_cal = cal_share_per_yr(df__iy_hs8_cy, dic_hiraky['gpby_tar'])
-    df__iy_hs8_cy_cal = cal_growth_rate_per_yr(df__iy_hs8_cy_cal)
-    # [各產業 x 各國] 貨品排名
-    df__iy_cy_hs8_rank = rank_hs8_diff(df__iy_hs8_cy_cal, dic_hiraky['lst_gpby_cols'],
-                                       rank_top_num=RANK_TOP_NUM_5
-                                       )
     df__iy_cy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_cy_hs8_rank, how='right',
                                   left_index=True, right_on='Hscode8')
 
