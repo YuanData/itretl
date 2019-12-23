@@ -107,6 +107,62 @@ def gen_iy_hs8_process(df__iy_hs8_cy_yr):
     return df__iy_hs8_rank, df_iy
 
 
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = #
+
+def gen_hs8_rank_cy_diff_process(df__hs8_raw):
+    lst_hs8_cy_yr = ['Hscode8', COUNTRY, 'year']
+    lst_hs8_yr__rm_cy = ['Hscode8', 'year']
+    lst_hs8__rm_yr_cy = ['Hscode8']
+    gpby_tar = 'hs8gpby'
+    df__hs8_cy_yr = df__hs8_raw.copy()
+
+    # df_貨品x國= df_貨品x國x年.UNSTACK(年)
+    df__hs8_cy = df__hs8_cy_yr.set_index(lst_hs8_cy_yr).unstack()
+    df__hs8_cy = df__hs8_cy.fillna(0)
+    df__hs8_cy.columns = ['{sum_gpby_tar}_{y}'.format(sum_gpby_tar=t[0], y=t[1]) for t in tuple(df__hs8_cy.columns)]
+    df__hs8_cy.reset_index(inplace=True)
+    df__hs8_cy.set_index(lst_hs8__rm_yr_cy, inplace=True)
+    del df__hs8_cy_yr
+    # df_貨品 = df_貨品x年.UNSTACK(年)
+    df__hs8_yr = df__hs8_raw.groupby(lst_hs8_yr__rm_cy)[VALUE].sum().reset_index()
+    del df__hs8_raw
+    df__hs8_yr.rename(columns={VALUE: 'sum_%s' % gpby_tar}, inplace=True)
+    df__hs8 = df__hs8_yr.set_index(lst_hs8_yr__rm_cy).unstack()
+    df__hs8 = df__hs8.fillna(0)
+    df__hs8.columns = ['{Value}_{y}'.format(Value=t[0], y=t[1]) for t in tuple(df__hs8.columns)]
+
+    # df_產業x貨品.LEFT_JOIN(df_產業)
+    df__hs8 = pd.merge(df__hs8, df__hs8_cy, how='left', left_index=True, right_index=True)
+    df__hs8.reset_index(inplace=True)
+
+    df__hs8_cy_cal = cal_share_per_yr(df__hs8, gpby_tar)
+    df__hs8_cy_cal = cal_growth_rate_per_yr(df__hs8_cy_cal)
+    del df__hs8, df__hs8_cy
+    # [各貨品] 國排名
+    df__hs8_cy_rank = rank_hs8_diff(df__hs8_cy_cal, lst_hs8__rm_yr_cy,
+                                    rank_top_num=RANK_TOP_NUM_5
+                                    )
+    return df__hs8_cy_rank
+
+
+def gen_hs8_rank_cy_diff(df__hs8_raw, period_str, col_str):
+    df__hs8_cy_rank = gen_hs8_rank_cy_diff_process(df__hs8_raw)
+
+    df__hs8_cy_rank['市場'] = df__hs8_cy_rank[COUNTRY] + '\n( ' + df__hs8_cy_rank['diff_2019'].apply(
+        lambda s: '{:,.0f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_hs8gpby_2019'].apply(
+        lambda s: '{:.4f}'.format(s)) + ')'
+    df__hs8_cy_rank = df__hs8_cy_rank[['Hscode8', 'rank', '市場']]
+    df__hs8_cy_rank = df__hs8_cy_rank.drop_duplicates(['Hscode8', 'rank'])  # work around
+    df__hs8_rank_cy_unst = df__hs8_cy_rank.set_index(['Hscode8', 'rank'])
+    df__hs8_rank_cy_unst = df__hs8_rank_cy_unst.unstack()
+    df__hs8_rank_cy_unst = df__hs8_rank_cy_unst.fillna(0)
+    df__hs8_rank_cy_unst.columns = ['{rank}_{mkt}'.format(rank=t[1], mkt=t[0]) for t in
+                                    tuple(df__hs8_rank_cy_unst.columns)]
+    return df__hs8_rank_cy_unst
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = #
+
 def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str):
     df__iy_hs8_rank, df_iy = gen_iy_hs8_process(df__iy_hs8_cy_yr)
     df__iy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_hs8_rank, how='right', left_index=True, right_on='Hscode8')
@@ -488,6 +544,8 @@ if __name__ == '__main__':
     df_1m__hs8_raw = gen_df_hs8_from_hs11_gpby(df_1m__hs11_raw)
     df_1m__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_1m__hs8_raw)
     del df_1m__hs11_raw
+
+    # df_yt__hs8_rank_cy_unst = gen_hs8_rank_cy_diff(df_yt__hs8_raw, period_str='2019年1-11月', col_str='1-11')
 
     df_yt__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str='2019年1-11月', col_str='1-11')
     df_1m__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str='2019年11月', col_str='11')
