@@ -30,7 +30,7 @@ def gen_df_all_iy_regex():
 
     # 正式用
     df_all_iy_xlsx = df_all_iy_xlsx[
-        (df_all_iy_xlsx['reports'] == 1)
+        (df_all_iy_xlsx['reports_version_1'] == 1)
         |
         (((df_all_iy_xlsx['大項'] == '遊艇') | (df_all_iy_xlsx['大項'] == '航太'))
          & (df_all_iy_xlsx['細項'] == '全部產品'))
