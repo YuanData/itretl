@@ -36,11 +36,12 @@ def insert_hscode_industry_reference_process():
     itrconversion_conn = gen_itr_conn(db='itrconversion')
     itrconversion_cur = itrconversion_conn.cursor()
 
-    cols = "`,`".join([str(i) for i in df.columns.tolist()])
+    col_lst = df.columns.tolist()
+    cols = "`,`".join([str(i) for i in col_lst])
+    sql_cmd = "INSERT INTO `hscode_industry_reference` (`" + cols + "`) VALUES (" + "%s," * (len(col_lst) - 1) + "%s)"
 
-    for i, row in df.iterrows():
-        sql = "INSERT INTO `hscode_industry_reference` (`" + cols + "`) VALUES (" + "%s," * (len(row) - 1) + "%s)"
-        itrconversion_cur.execute(sql, tuple(row))
+    for _, row in df.iterrows():
+        itrconversion_cur.execute(sql_cmd, tuple(row))
     itrconversion_conn.commit()
 
     itrconversion_cur.close()
