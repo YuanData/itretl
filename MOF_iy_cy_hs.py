@@ -148,9 +148,12 @@ def gen_hs8_rank_cy_diff_process(df__hs8_raw):
 def gen_hs8_rank_cy_diff(df__hs8_raw, period_str, col_str):
     del period_str, col_str
     df__hs8_cy_rank = gen_hs8_rank_cy_diff_process(df__hs8_raw)
+    df__hs8_cy_rank['share_of_diff_2019'] = df__hs8_cy_rank['diff_2019'] / (
+            df__hs8_cy_rank['sum_hs8gpby_2019'] - df__hs8_cy_rank['sum_hs8gpby_2018'])
 
-    df__hs8_cy_rank['市場'] = df__hs8_cy_rank[COUNTRY] + '\n( ' + df__hs8_cy_rank['diff_2019'].apply(
-        lambda s: '{:,.0f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_hs8gpby_2019'].apply(
+    df__hs8_cy_rank['市場'] = df__hs8_cy_rank[COUNTRY] + '\n( ' + df__hs8_cy_rank['diff_2019'].apply(  # 市差額
+        lambda s: '{:,.0f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_hs8gpby_2019'].apply(  # 佔比
+        lambda s: '{:.4f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_diff_2019'].apply(  # 市差額佔比
         lambda s: '{:.4f}'.format(s)) + ')'
     df__hs8_cy_rank = df__hs8_cy_rank[['Hscode8', 'rank', '市場']]
     df__hs8_cy_rank = df__hs8_cy_rank.drop_duplicates(['Hscode8', 'rank'])  # work around
