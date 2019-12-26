@@ -37,13 +37,17 @@ def gen_df_all_iy_regex():
         (((df_all_iy_xlsx['大項'] == '遊艇') | (df_all_iy_xlsx['大項'] == '航太'))
          & (df_all_iy_xlsx['細項'] == '全部產品'))
         ]
-    df_all_iy_xlsx = df_all_iy_xlsx[
-        df_all_iy_xlsx['industry'] != '19_其他_傢俱'
-        ]
+    # df_all_iy_xlsx = df_all_iy_xlsx[
+    #     df_all_iy_xlsx['industry'] != '19_其他_傢俱'
+    #     ]
     df_all_iy_xlsx = df_all_iy_xlsx[['選擇方式', 'industry', 'hscode']]
 
     df_all_iy_xlsx['industry'] = df_all_iy_xlsx['industry'].str.replace('_全部產品', '')
 
+    df_all_iy_xlsx['industry'] = np.where(
+        df_all_iy_xlsx['industry'] == '19_其他_傢俱',
+        '19_傢俱',
+        df_all_iy_xlsx['industry'])
     df_all_iy_xlsx['industry'] = np.where(
         df_all_iy_xlsx['industry'] == '14_珠寶及貴金屬製品(71_天然珍珠或養珠, 寶石或次寶石, 貴金屬, 被覆貴金屬之金屬及其製品, 仿首飾, 鑄幣)',
         '14_珠寶及貴金屬製品',
