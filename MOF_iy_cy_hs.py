@@ -145,8 +145,39 @@ def gen_hs8_rank_cy_diff_process(df__hs8_raw):
     return df__hs8_cy_rank
 
 
+def save_df__hs8_cy_rank_b4_unst(df, period_str, col_str):
+    df = pd.merge(df_hs_convert_zh, df, how='right', left_index=True, right_on='Hscode8')
+    df = df[[
+        'Hscode8',
+        'Hscode8_Chinese',
+        'Country',
+        'Value_2018',
+        'Value_2019',
+        'diff_2019',
+        'growth_rate_2019',
+        'share_of_hs8gpby_2019',
+        'rank_type',
+        'rank',
+        'rank_int',
+    ]].copy()
+    df.rename(columns={
+        'Hscode8': 'HSCODE',
+        'Hscode8_Chinese': '產品名',
+        'Country': '國家',
+        'Value_2018': '2018年%s月出口該國(千美元)' % col_str,
+        'Value_2019': '2019年%s月出口該國(千美元)' % col_str,
+        'diff_2019': '差額(千美元)',
+        'growth_rate_2019': '成長率(％)',
+        'share_of_hs8gpby_2019': '佔比 (出口該國佔該產品)',
+        'rank_type': '增額或減額',
+        'rank': '排名',
+        'rank_int': '名次',
+    }, inplace=True)
+    df__iy_cy_hs8_rank_xlsx = os.path.join(HS8_DIFF_RANK_PATH, '貨品_%s_hs8_cy_rank_L.xlsx' % period_str)
+    df.to_excel(df__iy_cy_hs8_rank_xlsx, sheet_name='%s_hs8_cy_rank_L.xlsx' % period_str, index=False)
+
+
 def gen_hs8_rank_cy_diff(df__hs8_raw, period_str, col_str):
-    del period_str, col_str
     df__hs8_cy_rank = gen_hs8_rank_cy_diff_process(df__hs8_raw)
     df__hs8_cy_rank['share_of_diff_2019'] = df__hs8_cy_rank['diff_2019'] / (
             df__hs8_cy_rank['sum_hs8gpby_2019'] - df__hs8_cy_rank['sum_hs8gpby_2018'])
@@ -155,6 +186,9 @@ def gen_hs8_rank_cy_diff(df__hs8_raw, period_str, col_str):
         lambda s: '{:,.0f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_hs8gpby_2019'].apply(  # 佔比
         lambda s: '{:.4f}'.format(s)) + ' / ' + df__hs8_cy_rank['share_of_diff_2019'].apply(  # 市差額佔比
         lambda s: '{:.4f}'.format(s)) + ')'
+
+    save_df__hs8_cy_rank_b4_unst(df__hs8_cy_rank, period_str, col_str)
+
     df__hs8_cy_rank = df__hs8_cy_rank[['Hscode8', 'rank', '市場']]
     df__hs8_cy_rank = df__hs8_cy_rank.drop_duplicates(['Hscode8', 'rank'])  # work around
     df__hs8_rank_cy_unst = df__hs8_cy_rank.set_index(['Hscode8', 'rank'])
@@ -168,6 +202,7 @@ def gen_hs8_rank_cy_diff(df__hs8_raw, period_str, col_str):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = #
 
 def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, df__hs8_rank_cy_unst):
+    del df__hs8_rank_cy_unst
     df__iy_hs8_rank, df_iy = gen_iy_hs8_process(df__iy_hs8_cy_yr)
     df__iy_hs8_rank = pd.merge(df_hs_convert_zh, df__iy_hs8_rank, how='right', left_index=True, right_on='Hscode8')
 
@@ -175,10 +210,10 @@ def gen_iy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, df__hs8_rank_cy_
 
     df__iy_hs8_rank = df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str)  # 輸出格式調整
 
-    df__iy_hs8_rank = pd.merge(df__iy_hs8_rank, df__hs8_rank_cy_unst, how='left', left_on='HSCODE', right_index=True)
+    # df__iy_hs8_rank = pd.merge(df__iy_hs8_rank, df__hs8_rank_cy_unst, how='left', left_on='HSCODE', right_index=True)
 
     df__iy_hs8_rank.reset_index(drop=True, inplace=True)
-    industry_hs8_diff_rank_l_xlsx = os.path.join(HS8_DIFF_RANK_PATH, '%s_iy_hs8_rank_L.xlsx' % period_str)
+    industry_hs8_diff_rank_l_xlsx = os.path.join(HS8_DIFF_RANK_PATH, '產業_%s_iy_hs8_rank_L.xlsx' % period_str)
     df__iy_hs8_rank.to_excel(
         industry_hs8_diff_rank_l_xlsx, sheet_name='%s_iy_hs8_rank_L' % period_str, index=False)
     return df__iy_hs8_rank_unst
@@ -399,7 +434,7 @@ def gen_iy_cy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, chosen_area=N
         'share_of_indst_of_cnty_2019': '佔比 (產品佔該國該產業)',
         # 'diff_2018': '2018年1-10月產品該國家該產業總額與前年差額',
         'diff_2019': '差額(千美元)',
-        'growth_rate_2019': '成長率(%)',
+        'growth_rate_2019': '成長率(％)',
         'rank_type': '增額或減額',
         'rank': '排名',
         'rank_int': '名次',
@@ -562,7 +597,7 @@ if __name__ == '__main__':
     gen_excel_report_iy_hs8_rank(df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst)
     del df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst
 
-    choice_area = '新南向'
-    # choice_area = None
+    # choice_area = '新南向'
+    choice_area = None
     gen_iy_cy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str='2019年1-11月', col_str='1-11', chosen_area=choice_area)
     gen_iy_cy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str='2019年11月', col_str='11', chosen_area=choice_area)
