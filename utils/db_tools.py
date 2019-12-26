@@ -6,7 +6,8 @@ from config import PROPERTIES
 
 
 def gen_itretl_conn():
-    engine_args = 'mysql://{user}:{password}@{host}/{db}?charset=utf8'.format(
+    # engine_args = 'mysql://{user}:{password}@{host}/{db}?charset=utf8'.format(
+    engine_args = 'mysql://{user}:{password}@{host}/{db}?charset=utf8mb4'.format(
         host=PROPERTIES['HOSTNAME'],
         user=PROPERTIES['USERNAME'],
         password=PROPERTIES['PASSWORD'],
