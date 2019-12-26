@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from config import HEATMAP_L_PATH, HS8_DIFF_RANK_PATH
@@ -15,6 +16,7 @@ from utils.db_tools import *
 
 def nspc_xlsx_to_db(path):
     nspc_xlsx_lst = [os_path for os_path in Path(path).glob('新南向_*.xlsx')]
+    # nspc_xlsx_lst = [os_path for os_path in Path(path).glob('全球_*.xlsx')]
     for os_path in nspc_xlsx_lst:
         df = pd.read_excel(os_path)
         tb_name = os_path.stem
@@ -29,6 +31,7 @@ def nspc_xlsx_to_db(path):
             for c in col_lst]
         df.columns = col_rename_lst
         df['idx_type_iy_cy'] = df['產業'] + '_' + df['分類'] + '_' + df['國家']
+        df = df.replace([np.inf, -np.inf], np.nan)
         itretl_conn = gen_itretl_conn()
         df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
 
