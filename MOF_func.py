@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 
+import re
+
 import numpy as np
 import pandas as pd
 
@@ -41,12 +43,45 @@ def gen_df_all_iy_regex():
     df_all_iy_xlsx = df_all_iy_xlsx[['選擇方式', 'industry', 'hscode']]
 
     df_all_iy_xlsx['industry'] = df_all_iy_xlsx['industry'].str.replace('_全部產品', '')
-    import re
 
     df_all_iy_xlsx['industry'] = np.where(
         df_all_iy_xlsx['industry'] == '14_珠寶及貴金屬製品(71_天然珍珠或養珠, 寶石或次寶石, 貴金屬, 被覆貴金屬之金屬及其製品, 仿首飾, 鑄幣)',
         '14_珠寶及貴金屬製品',
         df_all_iy_xlsx['industry'])
+
+    df_all_iy_xlsx['industry'] = np.where(
+        df_all_iy_xlsx['選擇方式'] == '財政部定義產業',
+        df_all_iy_xlsx['industry'].str.replace(re.compile(r'\d\d_'), ''),
+        df_all_iy_xlsx['industry'])
+
+    df_all_iy_regex = pd.DataFrame()
+    for index, row in df_all_iy_xlsx.iterrows():
+        lst_1 = row['hscode'].split(',')
+        lst_2 = [s if len(s) <= 8 else s[:8] for s in lst_1]
+        lst_3 = ['^' + s for s in lst_2]
+        str_hs = '|'.join(lst_3)
+
+        df = pd.DataFrame.from_dict({'選擇方式': row['選擇方式'],
+                                     'industry': row['industry'],
+                                     'hscode': str_hs, }, orient='index').T
+        df_all_iy_regex = pd.concat([df_all_iy_regex, df])
+    df_all_iy_regex.reset_index(drop=True, inplace=True)
+    return df_all_iy_regex
+
+
+def gen_df_all_iy_regex_reports_version_industry21():
+    iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表.xlsx'
+    iy_hs_mapping_xlsx = iy_hs_mapping_str.format(dstore_ip=dstore_ip)
+    df_all_iy_xlsx = pd.read_excel(iy_hs_mapping_xlsx, 'sheet1')
+
+    # 正式用
+    df_all_iy_xlsx = df_all_iy_xlsx[
+        (df_all_iy_xlsx['reports_version_industry21'] == 1)
+    ]
+    df_all_iy_xlsx.sort_values(['reports_version_industry21_order'], ascending=[True], inplace=True)
+    df_all_iy_xlsx = df_all_iy_xlsx[['選擇方式', 'industry', 'hscode']]
+
+    # df_all_iy_xlsx['industry'] = df_all_iy_xlsx['industry'].str.replace('_全部產品', '')
 
     df_all_iy_xlsx['industry'] = np.where(
         df_all_iy_xlsx['選擇方式'] == '財政部定義產業',
