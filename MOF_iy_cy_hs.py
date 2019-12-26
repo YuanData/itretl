@@ -314,7 +314,7 @@ def df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str):
         # 'growth_rate_2019': '成長率(%)',
         'growth_rate_2019': '成長率(％)',
         # 'share_of_indst_2018': '產品於產業佔比_2018年%s月' % col_str,
-        'share_of_indst_2019': '2019年%s月佔比 (產品佔該國該產業)' % col_str,
+        'share_of_indst_2019': '2019年%s月佔比 (產品佔該產業)' % col_str,
         'rank_type': '增額或減額',
         'rank': '排名',
         'rank_int': '名次',
