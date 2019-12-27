@@ -147,32 +147,23 @@ def gen_hs8_rank_cy_diff_process(df__hs8_raw):
 
 def save_df__hs8_cy_rank_b4_unst(df, period_str, col_str):
     df = pd.merge(df_hs_convert_zh, df, how='right', left_index=True, right_on='Hscode8')
-    df = df[[
-        'Hscode8',
-        'Hscode8_Chinese',
-        'Country',
-        'Value_2018',
-        'Value_2019',
-        'diff_2019',
-        'growth_rate_2019',
-        'share_of_hs8gpby_2019',
-        'rank_type',
-        'rank',
-        'rank_int',
-    ]].copy()
-    df.rename(columns={
-        'Hscode8': 'HSCODE',
-        'Hscode8_Chinese': '產品名',
-        'Country': '國家',
-        'Value_2018': '2018年%s月出口該國(千美元)' % col_str,
-        'Value_2019': '2019年%s月出口該國(千美元)' % col_str,
-        'diff_2019': '差額(千美元)',
-        'growth_rate_2019': '成長率(％)',
-        'share_of_hs8gpby_2019': '佔比 (出口該國佔該產品)',
-        'rank_type': '增額或減額',
-        'rank': '排名',
-        'rank_int': '名次',
-    }, inplace=True)
+    df_col_tpl_lst = [
+        ('Hscode8', 'HSCODE'),
+        ('Hscode8_Chinese', '產品名'),
+        ('Country', '國家'),
+        ('Value_2018', '2018年%s月出口該國(千美元)' % col_str),
+        ('Value_2019', '2019年%s月出口該國(千美元)' % col_str),
+        ('diff_2019', '差額(千美元)'),
+        ('growth_rate_2019', '成長率(％)'),
+        ('share_of_hs8gpby_2019', '佔比 (出口該國佔該產品)'),
+        ('rank_type', '增額或減額'),
+        ('rank', '排名'),
+        ('rank_int', '名次'),
+    ]
+    df_col_lst = [t[0] for t in df_col_tpl_lst]
+    df_col_dic = {t[0]: t[1] for t in df_col_tpl_lst}
+    df = df[df_col_lst].copy()
+    df.rename(columns=df_col_dic, inplace=True)
     df__iy_cy_hs8_rank_xlsx = os.path.join(HS8_DIFF_RANK_PATH, '貨品_%s_hs8_cy_rank_L.xlsx' % period_str)
     df.to_excel(df__iy_cy_hs8_rank_xlsx, sheet_name='%s_hs8_cy_rank_L.xlsx' % period_str, index=False)
 
@@ -282,43 +273,28 @@ def df__iy_hs8_rank_reformat(df__iy_hs8_rank, col_str):
     # df['growth_rate_2019'] = df['growth_rate_2019'].apply(lambda s: '{:.2f}'.format(s))
     # df['growth_rate_2019'] = df['growth_rate_2019'].replace(['nan', 'inf'], '')
 
-    df = df[[
-        '選擇方式',
-        'Industry',
-        'sum_indst_2018',
-        'sum_indst_2019',
-        'Hscode8',
-        'Hscode8_Chinese',
-        'Value_2018',
-        'Value_2019',
-        # 'diff_2018',
-        'diff_2019',
-        'growth_rate_2019',
-        # 'share_of_indst_2018',
-        'share_of_indst_2019',
-        'rank_type',
-        'rank_int',
-        'rank',
-    ]]
-    df.rename(columns={
-        '選擇方式': '產業',
-        'Industry': '分類',
-        'sum_indst_2018': '產業總額_2018年%s月' % col_str,
-        'sum_indst_2019': '產業總額_2019年%s月' % col_str,
-        'Hscode8': 'HSCODE',
-        'Hscode8_Chinese': '產品名',
-        'Value_2018': '2018年%s月出口總額(千美元)' % col_str,
-        'Value_2019': '2019年%s月出口總額(千美元)' % col_str,
-        # 'diff_2018': '2018年%s月產品總額與前年差額' % col_str,
-        'diff_2019': '差額(千美元)',
-        # 'growth_rate_2019': '成長率(%)',
-        'growth_rate_2019': '成長率(％)',
-        # 'share_of_indst_2018': '產品於產業佔比_2018年%s月' % col_str,
-        'share_of_indst_2019': '2019年%s月佔比 (產品佔該產業)' % col_str,
-        'rank_type': '增額或減額',
-        'rank': '排名',
-        'rank_int': '名次',
-    }, inplace=True)
+    df_col_tpl_lst = [
+        ('選擇方式', '產業'),
+        ('Industry', '分類'),
+        ('sum_indst_2018', '產業總額_2018年%s月' % col_str),
+        ('sum_indst_2019', '產業總額_2019年%s月' % col_str),
+        ('Hscode8', 'HSCODE'),
+        ('Hscode8_Chinese', '產品名'),
+        ('Value_2018', '2018年%s月出口總額(千美元)' % col_str),
+        ('Value_2019', '2019年%s月出口總額(千美元)' % col_str),
+        # ('diff_2018', '2018年%s月產品總額與前年差額' % col_str),
+        ('diff_2019', '差額(千美元)'),
+        ('growth_rate_2019', '成長率(％)'),
+        # ('share_of_indst_2018', '產品於產業佔比_2018年%s月' % col_str),
+        ('share_of_indst_2019', '2019年%s月佔比 (產品佔該產業)' % col_str),
+        ('rank_type', '增額或減額'),
+        ('rank', '排名'),
+        ('rank_int', '名次'),
+    ]
+    df_col_lst = [t[0] for t in df_col_tpl_lst]
+    df_col_dic = {t[0]: t[1] for t in df_col_tpl_lst}
+    df = df[df_col_lst]
+    df.rename(columns=df_col_dic, inplace=True)
     # 輸出格式調整 df__iy_hs8_rank [訖]
     return df
 
@@ -401,44 +377,29 @@ def gen_iy_cy_hs8_diff_rank(df__iy_hs8_cy_yr, period_str, col_str, chosen_area=N
     # df__iy_cy_hs8_rank['growth_rate_2019'] = df__iy_cy_hs8_rank['growth_rate_2019'].apply(
     #     lambda s: '{:.2f}'.format(s))
     # df__iy_cy_hs8_rank['growth_rate_2019'] = df__iy_cy_hs8_rank['growth_rate_2019'].replace(['nan', 'inf'], '')
-    df__iy_cy_hs8_rank = df__iy_cy_hs8_rank[[
-        '選擇方式',
-        'Industry',
-        'Country',
-        'sum_indst_of_cnty_2018',
-        'sum_indst_of_cnty_2019',
-        'Hscode8',
-        'Hscode8_Chinese',
-        'Value_2018',
-        'Value_2019',
-        # 'share_of_indst_of_cnty_2018',
-        'share_of_indst_of_cnty_2019',
-        # 'diff_2018',
-        'diff_2019',
-        'growth_rate_2019',
-        'rank_type',
-        'rank',
-        'rank_int',
-    ]]
-    df__iy_cy_hs8_rank.rename(columns={
-        '選擇方式': '產業',
-        'Industry': '分類',
-        'Country': '國家',
-        'sum_indst_of_cnty_2018': '產業總額_2018年%s月' % col_str,
-        'sum_indst_of_cnty_2019': '產業總額_2019年%s月' % col_str,
-        'Hscode8': 'HSCODE',
-        'Hscode8_Chinese': '產品名',
-        'Value_2018': '2018年%s月出口總額(千美元)' % col_str,
-        'Value_2019': '2019年%s月出口總額(千美元)' % col_str,
-        # 'share_of_indst_of_cnty_2018': '產品於該國家該產業總額佔比_2018年1-10月',
-        'share_of_indst_of_cnty_2019': '佔比 (產品佔該國該產業)',
-        # 'diff_2018': '2018年1-10月產品該國家該產業總額與前年差額',
-        'diff_2019': '差額(千美元)',
-        'growth_rate_2019': '成長率(％)',
-        'rank_type': '增額或減額',
-        'rank': '排名',
-        'rank_int': '名次',
-    }, inplace=True)
+    df_col_tpl_lst = [
+        ('選擇方式', '產業'),
+        ('Industry', '分類'),
+        ('Country', '國家'),
+        ('sum_indst_of_cnty_2018', '產業總額_2018年%s月' % col_str),
+        ('sum_indst_of_cnty_2019', '產業總額_2019年%s月' % col_str),
+        ('Hscode8', 'HSCODE'),
+        ('Hscode8_Chinese', '產品名'),
+        ('Value_2018', '2018年%s月出口總額(千美元)' % col_str),
+        ('Value_2019', '2019年%s月出口總額(千美元)' % col_str),
+        # ('share_of_indst_of_cnty_2018', '產品於該國家該產業總額佔比_2018年1-10月'),
+        ('share_of_indst_of_cnty_2019', '佔比 (產品佔該國該產業)'),
+        # ('diff_2018', '2018年1-10月產品該國家該產業總額與前年差額'),
+        ('diff_2019', '差額(千美元)'),
+        ('growth_rate_2019', '成長率(％)'),
+        ('rank_type', '增額或減額'),
+        ('rank', '排名'),
+        ('rank_int', '名次'),
+    ]
+    df_col_lst = [t[0] for t in df_col_tpl_lst]
+    df_col_dic = {t[0]: t[1] for t in df_col_tpl_lst}
+    df__iy_cy_hs8_rank = df__iy_cy_hs8_rank[df_col_lst]
+    df__iy_cy_hs8_rank.rename(columns=df_col_dic, inplace=True)
     # 輸出格式調整 df__iy_cy_hs8_rank [訖]
     file_prefix = '全球' if chosen_area is None else chosen_area
     df__iy_cy_hs8_rank_xlsx = os.path.join(HS8_DIFF_RANK_PATH,
