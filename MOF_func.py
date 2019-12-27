@@ -66,7 +66,7 @@ dic_reports_version_func = {
 }
 
 
-def gen_df_all_iy_regex(reports_version='reports_version_1'):
+def gen_df_all_iy_regex(reports_version):
     iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表.xlsx'
     # iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表_20191015.xlsx'
     iy_hs_mapping_xlsx = iy_hs_mapping_str.format(dstore_ip=dstore_ip)
@@ -92,8 +92,8 @@ def gen_df_all_iy_regex(reports_version='reports_version_1'):
     return df_all_iy_regex
 
 
-def rbind_df_by_iy_regex(df_input):
-    df_all_iy_regex = gen_df_all_iy_regex()
+def rbind_df_by_iy_regex(df_input, reports_version='reports_version_1'):
+    df_all_iy_regex = gen_df_all_iy_regex(reports_version)
 
     df_output = pd.DataFrame()
     for index, row in df_all_iy_regex.iterrows():
