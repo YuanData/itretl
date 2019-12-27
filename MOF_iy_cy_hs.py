@@ -509,7 +509,8 @@ def save_unst_heatmap(df__iy_cy_diff, period_str, heatmap_type, area_rank_lst, c
     cy_rank_lst = [c for c in cy_rank_lst if c in lst_cy_of_all_product]
     df__iy_cy_diff = df__iy_cy_diff[col_head + area_rank_lst + cy_rank_lst]
     df__iy_cy_diff['i_iy'] = 99
-    for i, iy_type in ['全部產品', '財政部定義產業', '5+2產業', '財政部定義產業-54細項', '其他產業定義']:
+    iy_type_lst = ['全部產品', '財政部定義產業', '5+2產業', '財政部定義產業-54細項', '其他產業定義']
+    for i, iy_type in enumerate(iy_type_lst):
         df__iy_cy_diff['i_iy'] = np.where(df__iy_cy_diff['產業'] == iy_type, i, df__iy_cy_diff['i_iy'])
 
     sort_key = '全球' if chosen_area is None else chosen_area
