@@ -61,19 +61,13 @@ def file_xlsx_to_db(path, file_name, df_func):
 
 
 if __name__ == '__main__':
-    # nspc_xlsx_to_db(HEATMAP_L_PATH)
     # file_xlsx_to_db(HEATMAP_L_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
-    # nspc_xlsx_to_db(HS8_DIFF_RANK_PATH)
     # file_xlsx_to_db(HS8_DIFF_RANK_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
 
-    # wld_xlsx_to_db_heatmap(HEATMAP_L_PATH)
     file_xlsx_to_db(HEATMAP_L_PATH, '全球_*.xlsx', df_idx_type_iy)
 
-    # iy_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業')
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業_*.xlsx', df_idx_type_iy)
 
-    # product_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品')
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品_*.xlsx', df_original)
 
-    # iy_file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx')
     file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx', df_idx_type_iy)
