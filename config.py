@@ -3,6 +3,9 @@ import os
 
 HOME_PATH = r'D:\itretl'
 
+PROPERTIES_DIR = os.path.join(os.path.expanduser('~'), 'properties')
+os.makedirs(PROPERTIES_DIR) if not os.path.exists(PROPERTIES_DIR) else None
+
 log_dir = os.path.join(HOME_PATH, 'log')
 os.makedirs(log_dir) if not os.path.exists(log_dir) else None
 
@@ -27,8 +30,8 @@ os.makedirs(HS8_DIFF_RANK_PATH) if not os.path.exists(HS8_DIFF_RANK_PATH) else N
 HEATMAP_L_PATH = os.path.join(OUTPUT_PATH, 'heatmap_L')
 os.makedirs(HEATMAP_L_PATH) if not os.path.exists(HEATMAP_L_PATH) else None
 
-PROPERTIES_DIR = os.path.join(os.path.expanduser('~'), 'properties')
-os.makedirs(PROPERTIES_DIR) if not os.path.exists(PROPERTIES_DIR) else None
+export_value_with_gr_share_by_cy = os.path.join(OUTPUT_PATH, 'export_value_with_gr_share_by_country')
+os.makedirs(export_value_with_gr_share_by_cy) if not os.path.exists(export_value_with_gr_share_by_cy) else None
 
 
 def load_properties(path_input):

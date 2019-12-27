@@ -55,8 +55,8 @@ def gen_df_all_iy_by_xlsx_reports_version_1(df_all_iy_xlsx):
 
 def get_df_dic_reports_version_1():
     df_all_iy_xlsx = gen_df_all_iy_xlsx()
-    df = df_all_iy_xlsx[(df_all_iy_xlsx['reports_version_2'] == 1)].copy()
-    df_dict = df[['reports_version_2_order', 'reports_version_2_ind_name']]
+    df = df_all_iy_xlsx[(df_all_iy_xlsx['reports_version_2'] == 1)]
+    df_dict = df[['reports_version_2_order', 'reports_version_2_ind_name']].copy()
     df_dict.sort_values(['reports_version_2_order'], ascending=[True], inplace=True)
     return df_dict
 
