@@ -5,6 +5,27 @@ import pandas as pd
 from config import dstore_ip
 from utils.db_tools import *
 
+"""
+CREATE TABLE `hscode_industry_reference` (
+  `id` int(11) NOT NULL,
+  `type` varchar(45) DEFAULT NULL,
+  `major` varchar(45) DEFAULT NULL,
+  `minor` varchar(90) DEFAULT NULL,
+  `hs6` text,
+  `hs11` text,
+  `hs_digits` int(11) DEFAULT NULL,
+  `hscode` text,
+  `industry` varchar(90) DEFAULT NULL,
+  `reports_version_1` int(11) DEFAULT NULL,
+  `reports_version_1_order` int(11) DEFAULT NULL,
+  `reports_version_2` int(11) DEFAULT NULL,
+  `reports_version_2_order` int(11) DEFAULT NULL,
+  `reports_version_2_ind_name` varchar(45) DEFAULT NULL,
+  `reports_version_industry21` int(11) DEFAULT NULL,
+  `reports_version_industry21_order` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+"""
+
 
 def gen_df_hscode_industry_reference():
     iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表.xlsx'
@@ -24,6 +45,7 @@ def gen_df_hscode_industry_reference():
         'reports_version_1_order': 'reports_version_1_order',
         'reports_version_2': 'reports_version_2',
         'reports_version_2_order': 'reports_version_2_order',
+        'reports_version_2_ind_name': 'reports_version_2_ind_name',
         'reports_version_industry21': 'reports_version_industry21',
         'reports_version_industry21_order': 'reports_version_industry21_order',
     }, inplace=True)
