@@ -35,63 +35,25 @@ def tb_name_replace_year_month(os_path):
     return tb_name
 
 
-def nspc_xlsx_to_db(path):
-    nspc_xlsx_lst = [os_path for os_path in Path(path).glob('新南向_*.xlsx')]
-    for os_path in nspc_xlsx_lst:
+def df_idx_type_iy_cy(df):
+    df['idx_type_iy_cy'] = df['產業'] + '_' + df['分類'] + '_' + df['國家']
+    return df
+
+
+def df_idx_type_iy(df):
+    df['idx_type_iy'] = df['產業'] + '_' + df['分類']
+    return df
+
+
+def df_original(df):
+    return df
+
+
+def file_xlsx_to_db(path, file_name, df_func):
+    file_xlsx_lst = [os_path for os_path in Path(path).glob(file_name)]
+    for os_path in file_xlsx_lst:
         df = df_from_excel_replace_year_month(os_path)
-
-        df['idx_type_iy_cy'] = df['產業'] + '_' + df['分類'] + '_' + df['國家']
-
-        itretl_conn = gen_itretl_conn()
-        tb_name = tb_name_replace_year_month(os_path)
-        df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
-        itretl_conn.close()
-
-
-def wld_xlsx_to_db_heatmap(path):
-    wld_xlsx_lst = [os_path for os_path in Path(path).glob('全球_*.xlsx')]
-    for os_path in wld_xlsx_lst:
-        df = df_from_excel_replace_year_month(os_path)
-
-        df['idx_type_iy'] = df['產業'] + '_' + df['分類']
-
-        itretl_conn = gen_itretl_conn()
-        tb_name = tb_name_replace_year_month(os_path)
-        df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
-        itretl_conn.close()
-
-
-def iy_xlsx_to_db(path, file_prefix):
-    iy_xlsx_lst = [os_path for os_path in Path(path).glob('%s_*.xlsx' % file_prefix)]
-    for os_path in iy_xlsx_lst:
-        df = df_from_excel_replace_year_month(os_path)
-
-        df['idx_type_iy'] = df['產業'] + '_' + df['分類']
-
-        itretl_conn = gen_itretl_conn()
-        tb_name = tb_name_replace_year_month(os_path)
-        df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
-        itretl_conn.close()
-
-
-def product_xlsx_to_db(path, file_prefix):
-    product_xlsx_lst = [os_path for os_path in Path(path).glob('%s_*.xlsx' % file_prefix)]
-    for os_path in product_xlsx_lst:
-        df = df_from_excel_replace_year_month(os_path)
-
-        itretl_conn = gen_itretl_conn()
-        tb_name = tb_name_replace_year_month(os_path)
-        df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
-        itretl_conn.close()
-
-
-def iy_file_xlsx_to_db(path, file_name):
-    nspc_xlsx_lst = [os_path for os_path in Path(path).glob(file_name)]
-    for os_path in nspc_xlsx_lst:
-        df = df_from_excel_replace_year_month(os_path)
-
-        df['idx_type_iy'] = df['產業'] + '_' + df['分類']
-
+        df = df_func(df)
         itretl_conn = gen_itretl_conn()
         tb_name = tb_name_replace_year_month(os_path)
         df.to_sql(tb_name, itretl_conn, if_exists='replace', index=False)
@@ -100,11 +62,18 @@ def iy_file_xlsx_to_db(path, file_name):
 
 if __name__ == '__main__':
     # nspc_xlsx_to_db(HEATMAP_L_PATH)
+    # file_xlsx_to_db(HEATMAP_L_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
     # nspc_xlsx_to_db(HS8_DIFF_RANK_PATH)
+    # file_xlsx_to_db(HS8_DIFF_RANK_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
 
-    wld_xlsx_to_db_heatmap(HEATMAP_L_PATH)
+    # wld_xlsx_to_db_heatmap(HEATMAP_L_PATH)
+    file_xlsx_to_db(HEATMAP_L_PATH, '全球_*.xlsx', df_idx_type_iy)
 
-    iy_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業')
-    product_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品')
+    # iy_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業')
+    file_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業_*.xlsx', df_idx_type_iy)
 
-    iy_file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx')
+    # product_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品')
+    file_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品_*.xlsx', df_original)
+
+    # iy_file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx')
+    file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx', df_idx_type_iy)
