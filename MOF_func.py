@@ -53,6 +53,13 @@ def gen_df_all_iy_by_xlsx_reports_version_1(df_all_iy_xlsx):
     return df_all_iy_xlsx
 
 
+def get_dic_reports_version_1():
+    df_all_iy_xlsx = gen_df_all_iy_xlsx()
+    df_dict = df_all_iy_xlsx[['reports_version_2_order', 'reports_version_2_ind_name']].copy()
+    dic_reports_version_1 = df_dict.to_dict()
+    return dic_reports_version_1
+
+
 def gen_df_all_iy_xlsx_by_reports_version_2(df_all_iy_xlsx):
     df = df_all_iy_xlsx[(df_all_iy_xlsx['reports_version_2'] == 1)].copy()
     df.sort_values(['reports_version_2_order'], ascending=[True], inplace=True)
@@ -60,19 +67,24 @@ def gen_df_all_iy_xlsx_by_reports_version_2(df_all_iy_xlsx):
     return df
 
 
-dic_reports_version_func = {
-    'reports_version_1': gen_df_all_iy_by_xlsx_reports_version_1,
-    'reports_version_2': gen_df_all_iy_xlsx_by_reports_version_2,
-}
-
-
-def gen_df_all_iy_regex(reports_version):
+def gen_df_all_iy_xlsx():
     iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表.xlsx'
     # iy_hs_mapping_str = r'//{dstore_ip}/dstore/重要資料/產業hscode對照表_20191015.xlsx'
     iy_hs_mapping_xlsx = iy_hs_mapping_str.format(dstore_ip=dstore_ip)
     df_all_iy_xlsx = pd.read_excel(iy_hs_mapping_xlsx, 'sheet1')
+
     # # df_all_iy_xlsx = pd.read_excel(r'SourceMaterial\產業hscode對照表.xlsx', 'sheet1')
     # # df_all_iy_xlsx = pd.read_excel(r'SourceMaterial\產業hscode對照表.xlsx', '重要資料版_節選16')
+    return df_all_iy_xlsx
+
+
+def gen_df_all_iy_regex(reports_version):
+    df_all_iy_xlsx = gen_df_all_iy_xlsx()
+
+    dic_reports_version_func = {
+        'reports_version_1': gen_df_all_iy_by_xlsx_reports_version_1,
+        'reports_version_2': gen_df_all_iy_xlsx_by_reports_version_2,
+    }
 
     reports_version_func = dic_reports_version_func[reports_version]
     df_all_iy_xlsx = reports_version_func(df_all_iy_xlsx)
