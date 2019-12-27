@@ -32,6 +32,14 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
     writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
     for cy in cy_lst:
         df = df__iy_cy_yr[df__iy_cy_yr[COUNTRY] == cy]
+        df = df[[COUNTRY, 'reports_version_2_order', 'Industry', 'year', 'Value']]
+        df.set_index([COUNTRY, 'reports_version_2_order', 'Industry', 'year'], inplace=True)
+        df = df.unstack()
+        df = df.fillna(0)
+        df.columns = ['{Year}_{Value}'.format(Year=t[1], Value=t[0]) for t in tuple(df.columns)]
+        df.reset_index(inplace=True)
+        total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
+        print(total_2019)
         df.to_excel(writer, sheet_name=cy, index=False)
     writer.save()
 
