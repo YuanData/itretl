@@ -7,6 +7,11 @@ import pandas as pd
 from config import HEATMAP_L_PATH, HS8_DIFF_RANK_PATH, REPORT_PATH
 from utils.db_tools import *
 
+YTD_last_y = '2018年1-11月'
+YTD_this_y = '2019年1-11月'
+LSM_last_y = '2018年11月'
+LSM_this_y = '2019年11月'
+
 
 # nspc_xlsx_to_db(period_str='2019年1-11月', period_type='ytd')
 # nspc_xlsx_to_db(period_str='2019年11月', period_type='lsm')
@@ -19,10 +24,10 @@ def df_from_excel_replace_year_month(os_path):
     col_lst = df.columns
     col_rename_lst = [
         c.replace(
-            '2019年1-11月', 'YTD-this-y').replace(
-            '2019年11月', 'LSM-this-y').replace(
-            '2018年1-11月', 'YTD-last-y').replace(
-            '2018年11月', 'LSM-last-y')
+            YTD_this_y, 'YTD-this-y').replace(
+            LSM_this_y, 'LSM-this-y').replace(
+            YTD_last_y, 'YTD-last-y').replace(
+            LSM_last_y, 'LSM-last-y')
         for c in col_lst]
     df.columns = col_rename_lst
     df = df.replace([np.inf, -np.inf], np.nan)
@@ -31,7 +36,7 @@ def df_from_excel_replace_year_month(os_path):
 
 def tb_name_replace_year_month(os_path):
     tb_name = os_path.stem
-    tb_name = tb_name.replace('2019年1-11月', 'YTD').replace('2019年11月', 'LSM')
+    tb_name = tb_name.replace(YTD_this_y, 'YTD').replace(LSM_this_y, 'LSM')
     return tb_name
 
 
@@ -67,7 +72,6 @@ if __name__ == '__main__':
     file_xlsx_to_db(HEATMAP_L_PATH, '全球_*.xlsx', df_idx_type_iy)
 
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業_*.xlsx', df_idx_type_iy)
-
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品_*.xlsx', df_original)
 
     file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx', df_idx_type_iy)
