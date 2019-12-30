@@ -2,7 +2,26 @@
 
 from MOF_func import *
 from config import *
+from conversion import gen_country_area_raw
 from utils.mof_pkg import MOFData, FilterMOFData
+
+
+def rbind_df_by_area(df__iy_hs8_cy_yr):
+    df_area, df_all_area_cy = gen_country_area_raw()
+    lst_area = df_area['areaName'].to_list()
+    del df_area
+    df_concat = pd.DataFrame()
+    for area in lst_area:
+        if area == '全球':
+            df_arcy = df__iy_hs8_cy_yr.copy()
+            df_arcy['areaName'] = '全球'
+        else:
+            df_arcy = df_all_area_cy[df_all_area_cy['areaName'] == area].copy()
+            df_arcy = pd.merge(df_arcy, df__iy_hs8_cy_yr, how='inner', left_on='countryName', right_on=COUNTRY)
+        df_arcy = df_arcy.groupby(['選擇方式', 'Industry', 'areaName', 'year'])[VALUE].sum().reset_index()
+        df_concat = pd.concat([df_concat, df_arcy])
+    df_concat.rename(columns={'areaName': COUNTRY}, inplace=True)
+    return df_concat
 
 
 def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
@@ -10,6 +29,10 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
 
     lst_iy_cy_yr = ['選擇方式', 'Industry', COUNTRY, 'year']
     df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr)[VALUE].sum().reset_index()
+
+    df__iy_hs8_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr)
+    df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_hs8_arcy_yr])
+
     df__iy_cy_yr = pd.merge(df__iy_cy_yr, dic_reports_version_1, how='left',
                             left_on='Industry', right_on='reports_version_2_ind_name')
     df__iy_cy_yr.drop(columns=['reports_version_2_ind_name'], inplace=True)
