@@ -36,19 +36,21 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
         df.reset_index(inplace=True)
         total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
         df['3年出口複合成長率(％)'] = np.power(df['2019_Value'] / df['2016_Value'], 1. / 3) - 1
-        df['3年出口複合成長率(％)'] = df['3年出口複合成長率(％)'] * 100
-        df['3年出口複合成長率(％)'] = df['3年出口複合成長率(％)'].apply(lambda s: '{:.2f}'.format(s))
         df['佔比(％)'] = df['2019_Value'] / total_2019
-        df['佔比(％)'] = df['佔比(％)'] * 100
-        df['佔比(％)'] = df['佔比(％)'].apply(lambda s: '{:.2f}'.format(s))
-
-        df['2016_Value'] = df['2016_Value'].apply(lambda s: '{:,.0f}'.format(s))
-        df['2017_Value'] = df['2017_Value'].apply(lambda s: '{:,.0f}'.format(s))
-        df['2018_Value'] = df['2018_Value'].apply(lambda s: '{:,.0f}'.format(s))
-        df['2019_Value'] = df['2019_Value'].apply(lambda s: '{:,.0f}'.format(s))
 
         df.to_excel(writer, sheet_name=cy, index=False)
+        workbook, worksheet = writer.book, writer.sheets[cy]
+        col_lst = list(df.columns)
+        idx_lst_of_percent = [i for i, col_name in enumerate(col_lst) if '％' in col_name]
+        idx_lst_of_amount = [i for i, col_name in enumerate(col_lst) if 'Value' in col_name]
+
+        for idx in idx_lst_of_percent:
+            worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '0.00%'}))
+        for idx in idx_lst_of_amount:
+            worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '#,##0'}))
+
     writer.save()
+    writer.close()
 
 
 if __name__ == '__main__':
