@@ -2,11 +2,7 @@
 
 from MOF_func import *
 from config import *
-from conversion import gen_df_hs_convert_zh
 from utils.mof_pkg import MOFData, FilterMOFData
-
-df_hs_convert_zh = gen_df_hs_convert_zh(hs_digital=8)  # 併HS中文貨名
-RANK_TOP_NUM_5 = 5
 
 
 def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
@@ -32,37 +28,48 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
     writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
     for cy in cy_lst:
         df = df__iy_cy_yr[df__iy_cy_yr[COUNTRY] == cy]
-        df = df[[COUNTRY, 'reports_version_2_order', 'Industry', 'year', 'Value']]
-        df.set_index([COUNTRY, 'reports_version_2_order', 'Industry', 'year'], inplace=True)
+        df = df[['reports_version_2_order', COUNTRY, 'Industry', 'year', 'Value']]
+        df.set_index(['reports_version_2_order', COUNTRY, 'Industry', 'year'], inplace=True)
         df = df.unstack()
         df = df.fillna(0)
         df.columns = ['{Year}_{Value}'.format(Year=t[1], Value=t[0]) for t in tuple(df.columns)]
         df.reset_index(inplace=True)
         total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
-        print(total_2019)
+        df['3年出口複合成長率(％)'] = np.power(df['2019_Value'] / df['2016_Value'], 1. / 3) - 1
+        df['3年出口複合成長率(％)'] = df['3年出口複合成長率(％)'] * 100
+        df['3年出口複合成長率(％)'] = df['3年出口複合成長率(％)'].apply(lambda s: '{:.2f}'.format(s))
+        df['佔比(％)'] = df['2019_Value'] / total_2019
+        df['佔比(％)'] = df['佔比(％)'] * 100
+        df['佔比(％)'] = df['佔比(％)'].apply(lambda s: '{:.2f}'.format(s))
+
+        df['2016_Value'] = df['2016_Value'].apply(lambda s: '{:,.0f}'.format(s))
+        df['2017_Value'] = df['2017_Value'].apply(lambda s: '{:,.0f}'.format(s))
+        df['2018_Value'] = df['2018_Value'].apply(lambda s: '{:,.0f}'.format(s))
+        df['2019_Value'] = df['2019_Value'].apply(lambda s: '{:,.0f}'.format(s))
+
         df.to_excel(writer, sheet_name=cy, index=False)
     writer.save()
 
 
 if __name__ == '__main__':
-    mof_data = MOFData('export', 'usd', y_gen_start=2017)
-    year_start = 2017
+    mof_data = MOFData('export', 'usd', y_gen_start=2016)
+    year_start = 2016
     year_end = 2019
 
-    # mof_yt = FilterMOFData(mof_data.df_source)
-    # mof_yt.filter_time(year_start=year_start, year_end=year_end, month_end=11)
-    # df_yt__hs11_raw = mof_yt.df_output
-    # df_yt__hs8_raw = gen_df_hs8_from_hs11_gpby(df_yt__hs11_raw)
-    # df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw, 'reports_version_2')
-    # del mof_yt, df_yt__hs11_raw
+    mof_yt = FilterMOFData(mof_data.df_source)
+    mof_yt.filter_time(year_start=year_start, year_end=year_end, month_end=11)
+    df_yt__hs11_raw = mof_yt.df_output
+    df_yt__hs8_raw = gen_df_hs8_from_hs11_gpby(df_yt__hs11_raw)
+    df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw, 'reports_version_2')
+    del mof_yt, df_yt__hs11_raw
 
-    mof_1m = FilterMOFData(mof_data.df_source)
-    mof_1m.filter_time(year_start=year_start, year_end=year_end, month_start=11, month_end=11)
-    df_1m__hs11_raw = mof_1m.df_output
-    df_1m__hs8_raw = gen_df_hs8_from_hs11_gpby(df_1m__hs11_raw)
-    df_1m__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_1m__hs8_raw, 'reports_version_2')
-    del mof_1m, df_1m__hs11_raw
+    # mof_1m = FilterMOFData(mof_data.df_source)
+    # mof_1m.filter_time(year_start=year_start, year_end=year_end, month_start=11, month_end=11)
+    # df_1m__hs11_raw = mof_1m.df_output
+    # df_1m__hs8_raw = gen_df_hs8_from_hs11_gpby(df_1m__hs11_raw)
+    # df_1m__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_1m__hs8_raw, 'reports_version_2')
+    # del mof_1m, df_1m__hs11_raw
 
     del mof_data
 
-    gen_mof_export_value_with_gr_share_by_country(df_1m__iy_hs8_cy_yr)
+    gen_mof_export_value_with_gr_share_by_country(df_yt__iy_hs8_cy_yr)
