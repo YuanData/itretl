@@ -30,8 +30,8 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
     lst_iy_cy_yr = ['選擇方式', 'Industry', COUNTRY, 'year']
     df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr)[VALUE].sum().reset_index()
 
-    df__iy_hs8_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr)
-    df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_hs8_arcy_yr])
+    df__iy_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr)
+    df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_arcy_yr])
 
     df__iy_cy_yr = pd.merge(df__iy_cy_yr, dic_reports_version_1, how='left',
                             left_on='Industry', right_on='reports_version_2_ind_name')
