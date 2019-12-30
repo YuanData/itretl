@@ -44,41 +44,69 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
         ].copy()
     df_cy_order = df_cy_order.sort_values(['Value'], ascending=[False])
     cy_lst = df_cy_order[COUNTRY].tolist()
-    cy_lst = cy_lst[:10]
     del df_cy_order
 
-    df_to_multiple_sheet(cy_lst, df__iy_cy_yr)
+    df_to_one_long_xlsx(cy_lst, df__iy_cy_yr)
+    # df_to_multiple_sheet(cy_lst, df__iy_cy_yr)
 
 
-def df_to_multiple_sheet(cy_lst, df__iy_cy_yr):
+def cal_df_cy(df, cy):
+    print(cy)
+    df = df[df[COUNTRY] == cy].copy()
+    df = df[['reports_version_2_order', COUNTRY, 'Industry', 'year', 'Value']]
+    df.set_index(['reports_version_2_order', COUNTRY, 'Industry', 'year'], inplace=True)
+    df = df.unstack()
+    # df = df.fillna(0)
+    df.columns = ['{Year}_{Value}'.format(Year=t[1], Value=t[0]) for t in tuple(df.columns)]
+
+    for c in ['2016_Value', '2017_Value', '2018_Value', '2019_Value']:
+        if c not in df.columns:
+            df[c] = np.nan
+    df.reset_index(inplace=True)
+    total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
+    df['出口成長率(％)'] = (df['2019_Value'] - df['2018_Value']) / df['2018_Value']
+    df['3年出口複合成長率(％)'] = np.power(df['2019_Value'] / df['2016_Value'], 1. / 3) - 1
+    df['佔比(％)'] = df['2019_Value'] / total_2019
+    return df
+
+
+def df_to_one_long_xlsx(cy_lst, df__iy_cy_yr):
     excel_file = os.path.join(export_value_with_gr_share_by_cy, 'export_value_with_gr_share_by_country.xlsx')
     writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
+    df_concat = pd.DataFrame()
     for cy in cy_lst:
-        df = df__iy_cy_yr[df__iy_cy_yr[COUNTRY] == cy]
-        df = df[['reports_version_2_order', COUNTRY, 'Industry', 'year', 'Value']]
-        df.set_index(['reports_version_2_order', COUNTRY, 'Industry', 'year'], inplace=True)
-        df = df.unstack()
-        df = df.fillna(0)
-        df.columns = ['{Year}_{Value}'.format(Year=t[1], Value=t[0]) for t in tuple(df.columns)]
-        df.reset_index(inplace=True)
-        total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
-        df['出口成長率(％)'] = (df['2019_Value'] - df['2018_Value']) / df['2018_Value']
-        df['3年出口複合成長率(％)'] = np.power(df['2019_Value'] / df['2016_Value'], 1. / 3) - 1
-        df['佔比(％)'] = df['2019_Value'] / total_2019
+        df = cal_df_cy(df__iy_cy_yr, cy)
+        df_concat = pd.concat([df_concat, df], sort=False)
 
-        df.to_excel(writer, sheet_name=cy, index=False)
-        workbook, worksheet = writer.book, writer.sheets[cy]
-        col_lst = list(df.columns)
-        idx_lst_of_percent = [i for i, col_name in enumerate(col_lst) if '％' in col_name]
-        idx_lst_of_amount = [i for i, col_name in enumerate(col_lst) if 'Value' in col_name]
-
-        for idx in idx_lst_of_percent:
-            worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '0.00%'}))
-        for idx in idx_lst_of_amount:
-            worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '#,##0'}))
+    df_writer(df_concat, writer)
 
     writer.save()
     writer.close()
+
+
+def df_to_multiple_sheet(cy_lst, df__iy_cy_yr):
+    cy_lst = cy_lst[:10]
+    excel_file = os.path.join(export_value_with_gr_share_by_cy, 'export_value_with_gr_share_by_country.xlsx')
+    writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
+    for cy in cy_lst:
+        df = cal_df_cy(df__iy_cy_yr, cy)
+        df_writer(df, writer, cy)
+
+    writer.save()
+    writer.close()
+
+
+def df_writer(df, writer, sheet_name='sheet1'):
+    df.to_excel(writer, sheet_name=sheet_name, index=False)
+    workbook, worksheet = writer.book, writer.sheets[sheet_name]
+    col_lst = list(df.columns)
+    idx_lst_of_percent = [i for i, col_name in enumerate(col_lst) if '％' in col_name]
+    idx_lst_of_amount = [i for i, col_name in enumerate(col_lst) if 'Value' in col_name]
+
+    for idx in idx_lst_of_percent:
+        worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '0.00%'}))
+    for idx in idx_lst_of_amount:
+        worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '#,##0'}))
 
 
 if __name__ == '__main__':
