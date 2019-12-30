@@ -58,6 +58,7 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
         df.columns = ['{Year}_{Value}'.format(Year=t[1], Value=t[0]) for t in tuple(df.columns)]
         df.reset_index(inplace=True)
         total_2019 = df[df['Industry'] == '總額']['2019_Value'].values[0]
+        df['出口成長率(％)'] = (df['2019_Value'] - df['2018_Value']) / df['2018_Value']
         df['3年出口複合成長率(％)'] = np.power(df['2019_Value'] / df['2016_Value'], 1. / 3) - 1
         df['佔比(％)'] = df['2019_Value'] / total_2019
 
