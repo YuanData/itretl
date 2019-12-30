@@ -7,7 +7,7 @@ from conversion import gen_country_area_raw
 from utils.mof_pkg import MOFData, FilterMOFData
 
 
-def rbind_df_by_area(df__iy_hs8_cy_yr):
+def rbind_df_by_area(df__iy_hs8_cy_yr, gpby_lst):
     df_area, df_all_area_cy = gen_country_area_raw()
     lst_area = df_area['areaName'].to_list()
     del df_area
@@ -19,25 +19,25 @@ def rbind_df_by_area(df__iy_hs8_cy_yr):
         else:
             df_arcy = df_all_area_cy[df_all_area_cy['areaName'] == area].copy()
             df_arcy = pd.merge(df_arcy, df__iy_hs8_cy_yr, how='inner', left_on='countryName', right_on=COUNTRY)
-        df_arcy = df_arcy.groupby(['選擇方式', 'Industry', 'areaName', 'year'])[VALUE].sum().reset_index()
+        df_arcy = df_arcy.groupby(gpby_lst)[VALUE].sum().reset_index()
         df_concat = pd.concat([df_concat, df_arcy])
     df_concat.rename(columns={'areaName': COUNTRY}, inplace=True)
     return df_concat
 
 
 def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
-    dic_reports_version_2 = get_df_dic_reports_version_2()
+    df_dic_reports_version_2 = get_df_dic_reports_version_2()
 
     lst_iy_cy_yr = ['選擇方式', 'Industry', COUNTRY, 'year']
     df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr)[VALUE].sum().reset_index()
 
-    df__iy_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr)
+    df__iy_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr, ['選擇方式', 'Industry', 'areaName', 'year'])
     df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_arcy_yr])
 
-    df__iy_cy_yr = pd.merge(df__iy_cy_yr, dic_reports_version_2, how='left',
+    df__iy_cy_yr = pd.merge(df__iy_cy_yr, df_dic_reports_version_2, how='left',
                             left_on='Industry', right_on='reports_version_2_ind_name')
     df__iy_cy_yr.drop(columns=['reports_version_2_ind_name'], inplace=True)
-    del dic_reports_version_2
+    del df_dic_reports_version_2
 
     df_cy_order = df__iy_cy_yr[
         (df__iy_cy_yr['year'] == '2019')
@@ -111,8 +111,27 @@ def df_writer(df, writer, sheet_name='sheet1'):
 
 
 def generate_iy_hs8_process(df__iy_hs8_cy_yr):
-    df__iy_hs8_rank, df_iy = gen_iy_hs8_process(df__iy_hs8_cy_yr)
-    del df__iy_hs8_rank, df_iy
+    lst_iy_cy_yr = ['選擇方式', 'Industry', COUNTRY, 'Hscode8', 'year']
+    df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr)[VALUE].sum().reset_index()
+
+    df__iy_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr, ['選擇方式', 'Industry', 'areaName', 'Hscode8', 'year'])
+    df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_arcy_yr])
+
+    lst_arcy = df__iy_cy_yr[COUNTRY].drop_duplicates().to_list()
+
+    df_concat = pd.DataFrame()
+    for arcy in lst_arcy:
+        try:
+            df__iy_hs8_arcy_yr = df__iy_cy_yr[df__iy_cy_yr[COUNTRY] == arcy].copy()
+            df__iy_hs8_rank, _ = gen_iy_hs8_process(df__iy_hs8_arcy_yr)
+            df__iy_hs8_rank.insert(0, COUNTRY, arcy)
+            df_concat = pd.concat([df_concat, df__iy_hs8_rank], sort=False)
+        except KeyError as ke:
+            print(arcy)
+            print(ke)
+
+    excel_file = os.path.join(export_value_with_gr_share_by_cy, '臺灣對全球前5大出口增額減額產品(8碼).xlsx')
+    df_concat.to_excel(excel_file, index=False)
 
 
 if __name__ == '__main__':
@@ -125,7 +144,6 @@ if __name__ == '__main__':
     df_yt__hs11_raw = mof_yt.df_output
     df_yt__hs8_raw = gen_df_hs8_from_hs11_gpby(df_yt__hs11_raw)
     df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw, 'reports_version_2')
-    # df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw)
     del mof_yt, df_yt__hs11_raw
 
     # mof_1m = FilterMOFData(mof_data.df_source)
