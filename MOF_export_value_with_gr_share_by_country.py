@@ -47,6 +47,10 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
     cy_lst = cy_lst[:10]
     del df_cy_order
 
+    df_to_multiple_sheet(cy_lst, df__iy_cy_yr)
+
+
+def df_to_multiple_sheet(cy_lst, df__iy_cy_yr):
     excel_file = os.path.join(export_value_with_gr_share_by_cy, 'export_value_with_gr_share_by_country.xlsx')
     writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
     for cy in cy_lst:
