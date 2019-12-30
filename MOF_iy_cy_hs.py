@@ -521,10 +521,10 @@ def save_unst_heatmap(df__iy_cy_diff, period_str, heatmap_type, area_rank_lst, c
                             index=False)
 
 
+year_start = 2017
+year_end = 2019
 if __name__ == '__main__':
     mof_data = MOFData('export', 'usd', y_gen_start=2017)
-    year_start = 2017
-    year_end = 2019
 
     mof_yt = FilterMOFData(mof_data.df_source)
     mof_yt.filter_time(year_start=year_start, year_end=year_end, month_end=11)

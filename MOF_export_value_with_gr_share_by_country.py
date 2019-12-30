@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from MOF_func import *
+from MOF_iy_cy_hs import gen_iy_hs8_process
 from config import *
 from conversion import gen_country_area_raw
 from utils.mof_pkg import MOFData, FilterMOFData
@@ -25,7 +26,7 @@ def rbind_df_by_area(df__iy_hs8_cy_yr):
 
 
 def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
-    dic_reports_version_1 = get_df_dic_reports_version_1()
+    dic_reports_version_2 = get_df_dic_reports_version_2()
 
     lst_iy_cy_yr = ['選擇方式', 'Industry', COUNTRY, 'year']
     df__iy_cy_yr = df__iy_hs8_cy_yr.groupby(lst_iy_cy_yr)[VALUE].sum().reset_index()
@@ -33,10 +34,10 @@ def gen_mof_export_value_with_gr_share_by_country(df__iy_hs8_cy_yr):
     df__iy_arcy_yr = rbind_df_by_area(df__iy_hs8_cy_yr)
     df__iy_cy_yr = pd.concat([df__iy_cy_yr, df__iy_arcy_yr])
 
-    df__iy_cy_yr = pd.merge(df__iy_cy_yr, dic_reports_version_1, how='left',
+    df__iy_cy_yr = pd.merge(df__iy_cy_yr, dic_reports_version_2, how='left',
                             left_on='Industry', right_on='reports_version_2_ind_name')
     df__iy_cy_yr.drop(columns=['reports_version_2_ind_name'], inplace=True)
-    del dic_reports_version_1
+    del dic_reports_version_2
 
     df_cy_order = df__iy_cy_yr[
         (df__iy_cy_yr['year'] == '2019')
@@ -109,6 +110,11 @@ def df_writer(df, writer, sheet_name='sheet1'):
         worksheet.set_column(idx, idx, width=None, cell_format=workbook.add_format({'num_format': '#,##0'}))
 
 
+def generate_iy_hs8_process(df__iy_hs8_cy_yr):
+    df__iy_hs8_rank, df_iy = gen_iy_hs8_process(df__iy_hs8_cy_yr)
+    del df__iy_hs8_rank, df_iy
+
+
 if __name__ == '__main__':
     mof_data = MOFData('export', 'usd', y_gen_start=2016)
     year_start = 2016
@@ -119,6 +125,7 @@ if __name__ == '__main__':
     df_yt__hs11_raw = mof_yt.df_output
     df_yt__hs8_raw = gen_df_hs8_from_hs11_gpby(df_yt__hs11_raw)
     df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw, 'reports_version_2')
+    # df_yt__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_yt__hs8_raw)
     del mof_yt, df_yt__hs11_raw
 
     # mof_1m = FilterMOFData(mof_data.df_source)
@@ -129,5 +136,7 @@ if __name__ == '__main__':
     # del mof_1m, df_1m__hs11_raw
 
     del mof_data
-
+    # (1)
     gen_mof_export_value_with_gr_share_by_country(df_yt__iy_hs8_cy_yr)
+    # (2)
+    # generate_iy_hs8_process(df_yt__iy_hs8_cy_yr)
