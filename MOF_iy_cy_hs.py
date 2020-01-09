@@ -527,10 +527,10 @@ if __name__ == '__main__':
     mof_data = MOFData('export', 'usd', y_gen_start=2017)
 
     mof_yt = FilterMOFData(mof_data.df_source)
-    mof_yt.filter_time(year_start=year_start, year_end=year_end, month_end=11)
+    mof_yt.filter_time(year_start=year_start, year_end=year_end, month_end=12)
 
     mof_1m = FilterMOFData(mof_data.df_source)
-    mof_1m.filter_time(year_start=year_start, year_end=year_end, month_start=11, month_end=11)
+    mof_1m.filter_time(year_start=year_start, year_end=year_end, month_start=12, month_end=12)
     del mof_data
 
     df_yt__hs11_raw = mof_yt.df_output
@@ -546,17 +546,22 @@ if __name__ == '__main__':
     df_1m__iy_hs8_cy_yr = rbind_df_by_iy_regex(df_1m__hs8_raw)
     del df_1m__hs11_raw
 
-    df_yt__hs8_rank_cy_unst = gen_hs8_rank_cy_diff(df_yt__hs8_raw, period_str='2019年1-11月', col_str='1-11')
-    df_1m__hs8_rank_cy_unst = gen_hs8_rank_cy_diff(df_1m__hs8_raw, period_str='2019年11月', col_str='11')
+    period_str_yt = '2019年1-12月'
+    period_str_1m = '2019年12月'
+    col_str_yt = '1-12'
+    col_str_1m = '12'
 
-    df_yt__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str='2019年1-11月', col_str='1-11',
+    df_yt__hs8_rank_cy_unst = gen_hs8_rank_cy_diff(df_yt__hs8_raw, period_str=period_str_yt, col_str=col_str_yt)
+    df_1m__hs8_rank_cy_unst = gen_hs8_rank_cy_diff(df_1m__hs8_raw, period_str=period_str_1m, col_str=col_str_1m)
+
+    df_yt__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str=period_str_yt, col_str=col_str_yt,
                                                    df__hs8_rank_cy_unst=df_yt__hs8_rank_cy_unst)
-    df_1m__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str='2019年11月', col_str='11',
+    df_1m__iy_hs8_rank_unst = gen_iy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str=period_str_1m, col_str=col_str_1m,
                                                    df__hs8_rank_cy_unst=df_1m__hs8_rank_cy_unst)
     gen_excel_report_iy_hs8_rank(df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst)
     del df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst
 
-    # choice_area = '新南向'
-    choice_area = None
-    gen_iy_cy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str='2019年1-11月', col_str='1-11', chosen_area=choice_area)
-    gen_iy_cy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str='2019年11月', col_str='11', chosen_area=choice_area)
+    choice_area = '新南向'
+    # choice_area = None
+    gen_iy_cy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str=period_str_yt, col_str=col_str_yt, chosen_area=choice_area)
+    gen_iy_cy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str=period_str_1m, col_str=col_str_1m, chosen_area=choice_area)
