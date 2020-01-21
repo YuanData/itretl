@@ -47,13 +47,9 @@ class DataFrameInsert:
 
     def insert_statement(self, table_name):
         names = list(map(str, self.df.columns))
-        wld = "%s"  # wildcard char
-        bracketed_names = [column for column in names]
-        col_names = ",".join(bracketed_names)
-        wildcards = ",".join([wld] * len(names))
+        col_names = ",".join(names)
         str_insert_statement = "INSERT INTO {table} ({columns}) VALUES ({wld})".format(
-            table=table_name, columns=col_names, wld=wildcards
-        )
+            table=table_name, columns=col_names, wld=",".join(["%s"] * len(names)))
         return str_insert_statement
 
     def insert_data(self):
