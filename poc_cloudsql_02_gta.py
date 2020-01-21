@@ -32,8 +32,6 @@ def insert_t02_gta_data_iran_ori():
     for i, row in df.iterrows():
         itrpoc_cur.execute(sql_cmd, tuple(row))
         print(i)
-        if i > 3000:
-            break
     itrpoc_conn.commit()
 
     itrpoc_cur.close()
@@ -57,11 +55,6 @@ class DataFrameInsert:
             table=table_name, columns=col_names, wld=wildcards
         )
         return str_insert_statement
-
-    def df_execute_insert(self, data_iter):
-        data_list = list(data_iter)
-        str_insert_statement = self.insert_statement('t02_gta_data_iran')
-        self.cur.executemany(str_insert_statement, data_list)
 
     def insert_data(self):
         temp = self.df
@@ -111,7 +104,7 @@ class DataFrameInsert:
                 print(end_i)
                 break
             chunk_iter = zip(*[arr[start_i:end_i] for arr in data_list])
-            self.df_execute_insert(chunk_iter)
+            self.cur.executemany(self.insert_statement('t02_gta_data_iran'), list(chunk_iter))
         self.conn.commit()
 
 
