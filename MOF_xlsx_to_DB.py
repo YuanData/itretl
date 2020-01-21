@@ -7,10 +7,10 @@ import pandas as pd
 from config import HEATMAP_L_PATH, HS8_DIFF_RANK_PATH, REPORT_PATH
 from utils.db_tools import *
 
-YTD_last_y = '2018年1-11月'
-YTD_this_y = '2019年1-11月'
-LSM_last_y = '2018年11月'
-LSM_this_y = '2019年11月'
+YTD_last_y = '2018年1-12月'
+YTD_this_y = '2019年1-12月'
+LSM_last_y = '2018年12月'
+LSM_this_y = '2019年12月'
 
 
 # nspc_xlsx_to_db(period_str='2019年1-11月', period_type='ytd')
@@ -66,12 +66,12 @@ def file_xlsx_to_db(path, file_name, df_func):
 
 
 if __name__ == '__main__':
-    # file_xlsx_to_db(HEATMAP_L_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
-    # file_xlsx_to_db(HS8_DIFF_RANK_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
+    file_xlsx_to_db(HEATMAP_L_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
+    file_xlsx_to_db(HS8_DIFF_RANK_PATH, '新南向_*.xlsx', df_idx_type_iy_cy)
 
     file_xlsx_to_db(HEATMAP_L_PATH, '全球_*.xlsx', df_idx_type_iy)
 
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '產業_*.xlsx', df_idx_type_iy)
     file_xlsx_to_db(HS8_DIFF_RANK_PATH, '貨品_*.xlsx', df_original)
 
-    file_xlsx_to_db(REPORT_PATH, '2019年1-11月_industry_hs8_diff_rank.xlsx', df_idx_type_iy)
+    file_xlsx_to_db(REPORT_PATH, '2019年1-12月_industry_hs8_diff_rank.xlsx', df_idx_type_iy)

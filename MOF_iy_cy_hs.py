@@ -561,7 +561,7 @@ if __name__ == '__main__':
     gen_excel_report_iy_hs8_rank(df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst)
     del df_yt__iy_hs8_rank_unst, df_1m__iy_hs8_rank_unst
 
-    choice_area = '新南向'
-    # choice_area = None
+    # choice_area = '新南向'
+    choice_area = None
     gen_iy_cy_hs8_diff_rank(df_yt__iy_hs8_cy_yr, period_str=period_str_yt, col_str=col_str_yt, chosen_area=choice_area)
     gen_iy_cy_hs8_diff_rank(df_1m__iy_hs8_cy_yr, period_str=period_str_1m, col_str=col_str_1m, chosen_area=choice_area)
