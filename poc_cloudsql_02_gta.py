@@ -11,7 +11,7 @@ CREATE TABLE `t02_gta_data_iran` (
     `reporter` VARCHAR(45) DEFAULT NULL,
     `partner` VARCHAR(45) DEFAULT NULL,
     `weight` BIGINT(20) NOT NULL,
-    `value` BIGINT(20) NOT NULL,
+    `value` BIGINT(20) NOT NULL
 )  ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;
 """
 
