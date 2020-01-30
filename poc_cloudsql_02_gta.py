@@ -21,7 +21,8 @@ path = r'data\feather\02_GTA_data_IRAN_20191129.feather'
 def insert_t02_gta_data_iran():
     df = feather.read_dataframe(path)
     itrpoc_engine = gen_itr_engine(db='itrpoc')
-    df.to_sql('t02_gta_data_iran', itrpoc_engine, if_exists="append", index=False, chunksize=10000)
+    df.to_sql('t02_gta_data_iran', itrpoc_engine, if_exists='append', index=False, chunksize=10000)
+    itrpoc_engine.dispose()
 
 
 if __name__ == '__main__':
