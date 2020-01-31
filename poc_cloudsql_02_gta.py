@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import feather
+import sqlalchemy
 
 from utils.db_tools import gen_itr_engine
 
@@ -21,7 +22,16 @@ path = r'data\feather\02_GTA_data_IRAN_20191129.feather'
 def insert_t02_gta_data_iran():
     df = feather.read_dataframe(path)
     itrpoc_engine = gen_itr_engine(db='itrpoc')
-    df.to_sql('t02_gta_data_iran', itrpoc_engine, if_exists='append', index=False, chunksize=10000)
+    df.to_sql('t02_gta_data_iran', itrpoc_engine, if_exists='replace', index=False, chunksize=10000,
+              dtype={
+                  'year': sqlalchemy.INT(),
+                  'trade': sqlalchemy.VARCHAR(8),
+                  'hscode': sqlalchemy.CHAR(6),
+                  'reporter': sqlalchemy.VARCHAR(45),
+                  'partner': sqlalchemy.VARCHAR(45),
+                  'weight': sqlalchemy.BIGINT(),
+                  'value': sqlalchemy.BIGINT(),
+              })
     itrpoc_engine.dispose()
 
 
